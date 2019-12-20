@@ -6,7 +6,7 @@
 
 @file: view_label.py
 @time: 2019/7/16 20:20
-@description:
+@description: polygon label to segmentation
 
 """
 import base64

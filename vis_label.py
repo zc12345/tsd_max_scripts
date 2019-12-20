@@ -4,6 +4,7 @@
 # @Author  : zc12345 (18292885866@163.com)
 # @Link    : https://github.com/zc12345/
 # @Version : $Id$
+# view boundary points
 
 import os.path as osp
 import os

@@ -19,19 +19,17 @@ args = parser.parse_args()
 K = args.k
 
 class genearte_list:
-    def __init__(self, data_dir, err_lst_path, target_train_path, target_test_path, target_train_full_path, target_test_full_path):
+    def __init__(self, data_dir, err_lst_path, target_train_path, target_test_path):
         self.data_dir = data_dir
-        self.target_train_path = target_train_path
-        self.target_test_path = target_test_path
-        self.target_train_full_path = target_train_full_path
-        self.target_test_full_path = target_test_full_path
-        self.err_lst_path = err_lst_path
+        self.target_train_path = osp.join(data_dir, target_train_path)
+        self.target_test_path = osp.join(data_dir,target_test_path)
+        self.err_lst_path = osp.join(data_dir,err_lst_path)
 
     def get_list(self):
         data = []
         logging.info(self.data_dir)
         err_lst = []
-        with open('error_lst.txt', 'r') as err_f:
+        with open(self.err_lst_path, 'r') as err_f:
             for line in err_f.readlines():
                 err_lst.append(line.strip())
         for root, dirs, files in os.walk(self.data_dir): # data dir
@@ -47,15 +45,11 @@ class genearte_list:
                         if anno_file.split('.')[-1] == 'json':
                             fn = anno_file.split('.')[0]
                             img = osp.join(dir_, 'img', fn + '.jpg').replace('\\', '/')
-                            seg_lbl = osp.join(dir_, 'vis', fn + '_label.png').replace('\\', '/')
                             json_lbl = osp.join(dir_, 'label', fn + '.json').replace('\\', '/')
-                            kpt_lbl = osp.join(dir_, 'keypoint_label-{}'.format(K), fn + '.json').replace('\\', '/')
-                            t = (img, seg_lbl, json_lbl, kpt_lbl)
-#                            print(t)
-                            img_path, seg_lbl_path, json_lbl_path, kpt_lbl_path = \
-                                            osp.join(self.data_dir, img), osp.join(self.data_dir, seg_lbl), \
-                                            osp.join(self.data_dir, json_lbl), osp.join(self.data_dir, kpt_lbl)
-                            assert osp.exists(img_path) and osp.exists(seg_lbl_path) and osp.exists(json_lbl_path) and osp.exists(kpt_lbl_path), 'image-label file not found'
+                            t = (img, json_lbl)
+                            img_path, json_lbl_path = \
+                                            osp.join(self.data_dir, img), osp.join(self.data_dir, json_lbl)
+                            assert osp.exists(img_path) and osp.exists(json_lbl_path) #and osp.exists(seg_lbl_path), 'image-label file not found'
                             data.append(t)
         return data
     
@@ -70,13 +64,10 @@ class genearte_list:
                     img = osp.join(dir_path, 'img', fn + '.jpg').replace('\\', '/')
                     seg_lbl = osp.join(dir_path, 'vis', fn + '_label.png').replace('\\', '/')
                     json_lbl = osp.join(dir_path, 'label', fn + '.json').replace('\\', '/')
-                    kpt_lbl = osp.join(dir_path, 'keypoint_label-{}'.format(K), fn + '.json').replace('\\', '/')
-                    t = (img, seg_lbl, json_lbl, kpt_lbl)
-                    print(t)
-                    img_path, seg_lbl_path, json_lbl_path, kpt_lbl_path = \
-                                    osp.join(self.data_dir, img), osp.join(self.data_dir, seg_lbl), \
-                                    osp.join(self.data_dir, json_lbl), osp.join(self.data_dir, kpt_lbl)
-                    assert osp.exists(img_path) and osp.exists(seg_lbl_path) and osp.exists(json_lbl_path) and osp.exists(kpt_lbl_path), 'image-label file not found'
+                    t = (img, json_lbl)
+                    img_path, json_lbl_path = \
+                                    osp.join(self.data_dir, img), osp.join(self.data_dir, json_lbl)
+                    assert osp.exists(img_path) and osp.exists(json_lbl_path) #and osp.exists(seg_lbl_path), 'image-label file not found'
                     data.append(t)
         return data
     
@@ -86,20 +77,12 @@ class genearte_list:
         train_data, test_data = self.split_data(data, 0.2)
         with open(self.target_train_path, 'w') as f:
             for line in train_data:
-                img, label, _, _ = line
+                img, label = line
                 f.write('{} {}\n'.format(img, label))
         with open(self.target_test_path, 'w') as f:
             for line in test_data:
-                img, label, _, _ = line
+                img, label = line
                 f.write('{} {}\n'.format(img, label))
-        with open(self.target_train_full_path, 'w') as f:
-            for line in train_data:
-                img, label, json_lbl, kpt_lbl = line
-                f.write('{} {} {} {}\n'.format(img, label, json_lbl, kpt_lbl))
-        with open(self.target_test_full_path, 'w') as f:
-            for line in test_data:
-                img, label, json_lbl, kpt_lbl = line
-                f.write('{} {} {} {}\n'.format(img, label, json_lbl, kpt_lbl))
         
     def split_data(self, data, test_ratio):
         train, test = [], []
@@ -119,31 +102,20 @@ class genearte_list:
         train_data, test_data = self.split_data(data, 0.2)
         with open(self.target_train_path, 'w') as f:
             for line in train_data:
-                img, label, _, _ = line
+                img, label = line
                 f.write('{} {}\n'.format(img, label))
         with open(self.target_test_path, 'w') as f:
             for line in test_data:
-                img, label, _, _ = line
+                img, label = line
                 f.write('{} {}\n'.format(img, label))
-        with open(self.target_train_full_path, 'w') as f:
-            for line in train_data:
-                img, label, json_lbl, kpt_lbl = line
-                f.write('{} {} {} {}\n'.format(img, label, json_lbl, kpt_lbl))
-        with open(self.target_test_full_path, 'w') as f:
-            for line in test_data:
-                img, label, json_lbl, kpt_lbl = line
-                f.write('{} {} {} {}\n'.format(img, label, json_lbl, kpt_lbl))
 
 
 if __name__ == '__main__':
-    data_dir = './'
-    err_lst_path = 'err_lst.txt'
-    target_train_path = 'train_lst-{}.txt'.format(K)
-    target_test_path = 'test_lst-{}.txt'.format(K)
-    target_train_json_path = 'train_full_lst-{}.txt'.format(K)
-    target_test_json_path = 'test_full_lst-{}.txt'.format(K)
-    g = genearte_list(data_dir, err_lst_path, target_train_path, target_test_path, target_train_json_path, target_test_json_path)
+    data_dir = '../tsd-max-traffic/'
+    err_lst_path = 'error_lst.txt'
+    target_train_path = 'train_lst.txt'
+    target_test_path = 'test_lst.txt'
+    g = genearte_list(data_dir, err_lst_path, target_train_path, target_test_path)
     g.write_list()
-    #g._single_write('./sequence-3')
 
 
